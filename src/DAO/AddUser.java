@@ -10,10 +10,11 @@ public class AddUser {
     private static final String USER = "postgres";
     private static final String PASSWORD = "qwertyuiop";
 
-    
-    Scanner sc = new Scanner(System.in);
+    public AddUser(){
 
-    public static void AddUserDetails(String Name, String Email) {
+    }
+
+    public void AddUserDetails(String Name, String Email) {
         Connection connection = null;
 
         try {
