@@ -1,0 +1,17 @@
+/home/jeff-clinton-toh/Documents/My Projects/My Projects/Online-Music-Streaming-Platform-java-/src/main/java/com/musicstreaming/dao/FavoriteDAO.java
+/home/jeff-clinton-toh/Documents/My Projects/My Projects/Online-Music-Streaming-Platform-java-/src/main/java/com/musicstreaming/service/RecommendationService.java
+/home/jeff-clinton-toh/Documents/My Projects/My Projects/Online-Music-Streaming-Platform-java-/src/main/java/com/musicstreaming/MusicStreamingApplication.java
+/home/jeff-clinton-toh/Documents/My Projects/My Projects/Online-Music-Streaming-Platform-java-/src/main/java/com/musicstreaming/service/PlaylistService.java
+/home/jeff-clinton-toh/Documents/My Projects/My Projects/Online-Music-Streaming-Platform-java-/src/main/java/com/musicstreaming/controller/UserController.java
+/home/jeff-clinton-toh/Documents/My Projects/My Projects/Online-Music-Streaming-Platform-java-/src/main/java/com/musicstreaming/dao/RecommendationDAO.java
+/home/jeff-clinton-toh/Documents/My Projects/My Projects/Online-Music-Streaming-Platform-java-/src/main/java/com/musicstreaming/dao/DBCONNECT.java
+/home/jeff-clinton-toh/Documents/My Projects/My Projects/Online-Music-Streaming-Platform-java-/src/main/java/com/musicstreaming/dao/UserDAO.java
+/home/jeff-clinton-toh/Documents/My Projects/My Projects/Online-Music-Streaming-Platform-java-/src/main/java/com/musicstreaming/dao/ArtistDAO.java
+/home/jeff-clinton-toh/Documents/My Projects/My Projects/Online-Music-Streaming-Platform-java-/src/main/java/com/musicstreaming/dao/SongDAO.java
+/home/jeff-clinton-toh/Documents/My Projects/My Projects/Online-Music-Streaming-Platform-java-/src/main/java/com/musicstreaming/service/UserService.java
+/home/jeff-clinton-toh/Documents/My Projects/My Projects/Online-Music-Streaming-Platform-java-/src/main/java/com/musicstreaming/controller/MusicController.java
+/home/jeff-clinton-toh/Documents/My Projects/My Projects/Online-Music-Streaming-Platform-java-/src/main/java/com/musicstreaming/controller/RecommendationController.java
+/home/jeff-clinton-toh/Documents/My Projects/My Projects/Online-Music-Streaming-Platform-java-/src/main/java/com/musicstreaming/dao/PlaylistDAO.java
+/home/jeff-clinton-toh/Documents/My Projects/My Projects/Online-Music-Streaming-Platform-java-/src/main/java/com/musicstreaming/service/MusicService.java
+/home/jeff-clinton-toh/Documents/My Projects/My Projects/Online-Music-Streaming-Platform-java-/src/main/java/com/musicstreaming/controller/PlaylistController.java
+/home/jeff-clinton-toh/Documents/My Projects/My Projects/Online-Music-Streaming-Platform-java-/src/main/java/com/musicstreaming/dao/AlbumDAO.java

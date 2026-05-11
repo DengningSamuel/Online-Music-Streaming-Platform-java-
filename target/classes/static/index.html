@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MusicFlow - Your Music Streaming Platform</title>
+    <link rel="stylesheet" href="/css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Auth Container -->
+    <div id="authContainer" class="container">
+        <div class="auth-wrapper">
+            <div class="auth-card">
+                <div class="auth-header">
+                    <h1><i class="fas fa-music"></i> MusicFlow</h1>
+                    <p>Your Music Streaming Platform</p>
+                </div>
+                
+                <!-- Login Form -->
+                <form id="loginForm" class="auth-form">
+                    <h2>Login</h2>
+                    <div class="form-group">
+                        <input type="email" id="loginEmail" placeholder="Email" required>
+                    </div>
+                    <div class="form-group">
+                        <input type="password" id="loginPassword" placeholder="Password" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-block">Login</button>
+                    <p class="auth-switch">Don't have an account? <a href="#" onclick="toggleAuthForm()">Sign Up</a></p>
+                </form>
+                
+                <!-- Signup Form -->
+                <form id="signupForm" class="auth-form hidden">
+                    <h2>Sign Up</h2>
+                    <div class="form-group">
+                        <input type="text" id="signupUsername" placeholder="Username" required>
+                    </div>
+                    <div class="form-group">
+                        <input type="email" id="signupEmail" placeholder="Email" required>
+                    </div>
+                    <div class="form-group">
+                        <input type="password" id="signupPassword" placeholder="Password" required>
+                    </div>
+                    <div class="form-group">
+                        <input type="password" id="signupPasswordConfirm" placeholder="Confirm Password" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-block">Sign Up</button>
+                    <p class="auth-switch">Already have an account? <a href="#" onclick="toggleAuthForm()">Login</a></p>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main App Container -->
+    <div id="appContainer" class="app hidden">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo">
+                <i class="fas fa-music"></i>
+                <span>MusicFlow</span>
+            </div>
+            
+            <nav class="nav-menu">
+                <a href="#" onclick="showPage('dashboard')" class="nav-item active" data-page="dashboard">
+                    <i class="fas fa-home"></i> <span>Home</span>
+                </a>
+                <a href="#" onclick="showPage('search')" class="nav-item" data-page="search">
+                    <i class="fas fa-search"></i> <span>Search</span>
+                </a>
+                <a href="#" onclick="showPage('library')" class="nav-item" data-page="library">
+                    <i class="fas fa-compact-disc"></i> <span>Library</span>
+                </a>
+                <a href="#" onclick="showPage('favorites')" class="nav-item" data-page="favorites">
+                    <i class="fas fa-heart"></i> <span>Favorites</span>
+                </a>
+                <a href="#" onclick="showPage('playlists')" class="nav-item" data-page="playlists">
+                    <i class="fas fa-list"></i> <span>Playlists</span>
+                </a>
+                <a href="#" onclick="showPage('trending')" class="nav-item" data-page="trending">
+                    <i class="fas fa-fire"></i> <span>Trending</span>
+                </a>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <div class="user-info" id="userInfo"></div>
+                <button id="logoutBtn" class="btn btn-secondary btn-block">Logout</button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Top Bar -->
+            <div class="top-bar">
+                <input type="text" id="searchInput" placeholder="Search songs, artists..." class="search-box">
+                <div class="top-bar-actions">
+                    <button id="themeToggle" class="icon-btn" title="Toggle Theme">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Pages Container -->
+            <div class="pages-container">
+                <!-- Dashboard Page -->
+                <div id="dashboardPage" class="page active">
+                    <div class="page-header">
+                        <h2>Welcome to MusicFlow</h2>
+                        <p>Your favorite music is just a click away</p>
+                    </div>
+                    
+                    <section class="section">
+                        <h3>Trending Now</h3>
+                        <div id="trendingContainer" class="songs-grid"></div>
+                    </section>
+                    
+                    <section class="section">
+                        <h3>Recently Added</h3>
+                        <div id="recentContainer" class="songs-grid"></div>
+                    </section>
+                </div>
+
+                <!-- Search Page -->
+                <div id="searchPage" class="page">
+                    <div class="page-header">
+                        <h2>Search</h2>
+                    </div>
+                    
+                    <div class="search-filters">
+                        <select id="searchType">
+                            <option value="songs">Songs</option>
+                            <option value="artists">Artists</option>
+                            <option value="albums">Albums</option>
+                        </select>
+                    </div>
+                    
+                    <div id="searchResults" class="songs-grid"></div>
+                </div>
+
+                <!-- Library Page -->
+                <div id="libraryPage" class="page">
+                    <div class="page-header">
+                        <h2>Library</h2>
+                        <div class="header-actions">
+                            <select id="libraryFilter">
+                                <option value="songs">All Songs</option>
+                                <option value="artists">Artists</option>
+                                <option value="albums">Albums</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div id="libraryContainer" class="songs-grid"></div>
+                </div>
+
+                <!-- Favorites Page -->
+                <div id="favoritesPage" class="page">
+                    <div class="page-header">
+                        <h2>Favorite Songs</h2>
+                    </div>
+                    <div id="favoritesContainer" class="songs-list"></div>
+                </div>
+
+                <!-- Playlists Page -->
+                <div id="playlistsPage" class="page">
+                    <div class="page-header">
+                        <h2>My Playlists</h2>
+                        <button id="createPlaylistBtn" class="btn btn-primary">+ New Playlist</button>
+                    </div>
+                    
+                    <div id="playlistsContainer" class="playlists-grid"></div>
+                </div>
+
+                <!-- Trending Page -->
+                <div id="trendingPage" class="page">
+                    <div class="page-header">
+                        <h2>Trending Now</h2>
+                    </div>
+                    
+                    <div id="trendingFullContainer" class="songs-list"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Player -->
+        <div class="player">
+            <div class="player-track-info">
+                <div class="player-album-art">
+                    <img id="playerAlbumArt" src="/images/default-album.png" alt="Album Art">
+                </div>
+                <div class="player-track-details">
+                    <div id="playerTrackTitle" class="player-title">No song selected</div>
+                    <div id="playerTrackArtist" class="player-artist">Select a song to play</div>
+                </div>
+            </div>
+
+            <div class="player-controls">
+                <button id="playerPrevBtn" class="player-btn">
+                    <i class="fas fa-step-backward"></i>
+                </button>
+                <button id="playerPlayBtn" class="player-btn play-btn">
+                    <i class="fas fa-play"></i>
+                </button>
+                <button id="playerNextBtn" class="player-btn">
+                    <i class="fas fa-step-forward"></i>
+                </button>
+            </div>
+
+            <div class="player-progress">
+                <span id="playerCurrentTime" class="player-time">0:00</span>
+                <div class="progress-bar">
+                    <div id="playerProgressFill" class="progress-fill"></div>
+                    <input type="range" id="playerProgressInput" class="progress-input" min="0" max="100" value="0">
+                </div>
+                <span id="playerDuration" class="player-time">0:00</span>
+            </div>
+
+            <div class="player-volume">
+                <i class="fas fa-volume-up"></i>
+                <input type="range" id="playerVolume" class="volume-slider" min="0" max="100" value="70">
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for Create Playlist -->
+    <div id="playlistModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Create New Playlist</h3>
+                <button class="modal-close" onclick="closePlaylistModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Playlist Name</label>
+                    <input type="text" id="playlistName" placeholder="My Awesome Playlist" required>
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea id="playlistDescription" placeholder="Add a description..." rows="3"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closePlaylistModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="createPlaylist()">Create</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for Song Details -->
+    <div id="songModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="songModalTitle">Song Details</h3>
+                <button class="modal-close" onclick="closeSongModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="songModalBody"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div id="toast" class="toast"></div>
+
+    <script src="/js/app.js"></script>
+</body>
+</html>
