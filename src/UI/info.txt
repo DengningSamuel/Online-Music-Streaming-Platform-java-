@@ -1,4 +1,0 @@
-This part holds UI components like dashboarb, buttons, navs, song play 
-display, login and Sign up forms.
-
-We will make use of JavaFX as it is very convinient and mordern
