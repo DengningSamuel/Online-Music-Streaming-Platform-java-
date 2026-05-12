@@ -36,6 +36,7 @@ CREATE TABLE IF NOT EXISTS public.users (
 
 CREATE TABLE IF NOT EXISTS public.artists (
     id SERIAL PRIMARY KEY,
+    user_id INTEGER UNIQUE REFERENCES public.users(id),
     name VARCHAR(100) NOT NULL,
     genre VARCHAR(50),
     bio TEXT,

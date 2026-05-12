@@ -61,11 +61,12 @@ public class RecommendationDAO {
      * Get popular songs (based on recommendations)
      */
     public static List<Map<String, Object>> getPopularSongs() throws SQLException {
-        String sql = "SELECT s.*, a.name as artist_name, COUNT(r.id) as recommendation_count " +
+        String sql = "SELECT s.*, a.name as artist_name, al.cover_image_url, COUNT(r.id) as recommendation_count " +
                      "FROM songs s " +
                      "LEFT JOIN artists a ON s.artist_id = a.id " +
+                     "LEFT JOIN albums al ON s.album_id = al.id " +
                      "LEFT JOIN recommendations r ON s.id = r.song_id " +
-                     "GROUP BY s.id, a.name " +
+                     "GROUP BY s.id, a.name, al.cover_image_url " +
                      "ORDER BY recommendation_count DESC LIMIT 20";
         List<Map<String, Object>> songs = new ArrayList<>();
         
@@ -79,6 +80,7 @@ public class RecommendationDAO {
                 song.put("id", rs.getInt("id"));
                 song.put("title", rs.getString("title"));
                 song.put("artist_name", rs.getString("artist_name"));
+                song.put("cover_image_url", rs.getString("cover_image_url"));
                 song.put("duration", rs.getInt("duration"));
                 song.put("recommendation_count", rs.getInt("recommendation_count"));
                 songs.add(song);

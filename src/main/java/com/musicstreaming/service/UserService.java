@@ -12,7 +12,7 @@ public class UserService {
     /**
      * Register a new user
      */
-    public static Map<String, Object> registerUser(String username, String email, String password) 
+    public static Map<String, Object> registerUser(String username, String email, String password, String userType) 
             throws SQLException {
         Map<String, Object> response = new HashMap<>();
         
@@ -29,7 +29,7 @@ public class UserService {
             String passwordHash = hashPassword(password);
             
             // Create user
-            boolean created = UserDAO.createUser(username, email, passwordHash);
+            boolean created = UserDAO.createUser(username, email, passwordHash, userType);
             
             if (created) {
                 Map<String, Object> newUser = UserDAO.getUserByEmail(email);

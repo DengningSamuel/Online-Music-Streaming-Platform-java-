@@ -9,14 +9,21 @@ public class AlbumDAO {
      * Create a new album
      */
     public static int createAlbum(String title, int artistId, String releaseDate, String coverImageUrl) throws SQLException {
-        String sql = "INSERT INTO albums (title, artist_id, release_date, cover_image_url) VALUES (?, ?, ?::date, ?) RETURNING id";
+        String sql = "INSERT INTO albums (title, artist_id, release_date, cover_image_url) VALUES (?, ?, ?, ?) RETURNING id";
         
         try (Connection conn = DBCONNECT.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             
             stmt.setString(1, title);
             stmt.setInt(2, artistId);
-            stmt.setString(3, releaseDate);
+            
+            // Handle null or empty release date
+            if (releaseDate == null || releaseDate.isEmpty()) {
+                stmt.setNull(3, java.sql.Types.DATE);
+            } else {
+                stmt.setDate(3, java.sql.Date.valueOf(releaseDate));
+            }
+            
             stmt.setString(4, coverImageUrl);
             
             ResultSet rs = stmt.executeQuery();

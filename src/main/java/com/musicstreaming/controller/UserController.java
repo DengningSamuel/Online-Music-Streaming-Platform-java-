@@ -16,8 +16,9 @@ public class UserController {
             String username = request.get("username");
             String email = request.get("email");
             String password = request.get("password");
+            String userType = request.getOrDefault("userType", "listener");
             
-            return UserService.registerUser(username, email, password);
+            return UserService.registerUser(username, email, password, userType);
         } catch (SQLException e) {
             Map<String, Object> error = new HashMap<>();
             error.put("success", false);

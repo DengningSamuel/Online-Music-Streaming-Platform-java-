@@ -8,8 +8,8 @@ public class UserDAO {
     /**
      * Create a new user
      */
-    public static boolean createUser(String username, String email, String passwordHash) throws SQLException {
-        String sql = "INSERT INTO users (username, email, password_hash) VALUES (?, ?, ?)";
+    public static boolean createUser(String username, String email, String passwordHash, String userType) throws SQLException {
+        String sql = "INSERT INTO users (username, email, password_hash, user_type) VALUES (?, ?, ?, ?)";
         
         try (Connection conn = DBCONNECT.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -17,6 +17,7 @@ public class UserDAO {
             stmt.setString(1, username);
             stmt.setString(2, email);
             stmt.setString(3, passwordHash);
+            stmt.setString(4, userType);
             
             int rowsInserted = stmt.executeUpdate();
             return rowsInserted > 0;
@@ -44,6 +45,7 @@ public class UserDAO {
                 user.put("username", rs.getString("username"));
                 user.put("email", rs.getString("email"));
                 user.put("subscription_type", rs.getString("subscription_type"));
+                user.put("user_type", rs.getString("user_type"));
                 user.put("created_at", rs.getTimestamp("created_at"));
             }
         }
@@ -68,6 +70,7 @@ public class UserDAO {
                 user.put("username", rs.getString("username"));
                 user.put("email", rs.getString("email"));
                 user.put("subscription_type", rs.getString("subscription_type"));
+                user.put("user_type", rs.getString("user_type"));
                 user.put("created_at", rs.getTimestamp("created_at"));
             }
         }

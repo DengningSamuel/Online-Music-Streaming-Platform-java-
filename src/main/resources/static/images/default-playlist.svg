@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <rect width="200" height="200" fill="#2a2a3e"/>
+  <rect x="30" y="30" width="140" height="20" fill="none" stroke="#6366f1" stroke-width="2"/>
+  <line x1="30" y1="60" x2="170" y2="60" stroke="#6366f1" stroke-width="1"/>
+  <line x1="30" y1="80" x2="170" y2="80" stroke="#6366f1" stroke-width="1"/>
+  <line x1="30" y1="100" x2="170" y2="100" stroke="#6366f1" stroke-width="1"/>
+  <line x1="30" y1="120" x2="170" y2="120" stroke="#6366f1" stroke-width="1"/>
+  <text x="100" y="160" font-family="Arial, sans-serif" font-size="14" fill="#9ca3af" text-anchor="middle">Playlist</text>
+</svg>

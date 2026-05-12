@@ -1,5 +1,5 @@
 // ==================== CONFIGURATION ====================
-const API_BASE_URL = 'http://localhost:8080/api';
+const API_BASE_URL = 'http://localhost:9090/api';
 const currentUser = JSON.parse(localStorage.getItem('currentUser')) || null;
 let currentSong = null;
 let isPlaying = false;
@@ -53,8 +53,20 @@ function setupEventListeners() {
     document.getElementById('playerProgressInput').addEventListener('change', seek);
     document.getElementById('playerVolume').addEventListener('input', setVolume);
     
+    // Audio Player Events
+    const audioPlayer = document.getElementById('audioPlayer');
+    audioPlayer.addEventListener('timeupdate', updatePlayerProgress);
+    audioPlayer.addEventListener('loadedmetadata', updatePlayerDuration);
+    audioPlayer.addEventListener('ended', playNext);
+    
     // Playlist Events
     document.getElementById('createPlaylistBtn').addEventListener('click', openPlaylistModal);
+    
+    // Artist Events
+    document.getElementById('uploadSongBtn').addEventListener('click', openUploadModal);
+    document.getElementById('uploadSongForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+    });
     
     // Theme Toggle
     document.getElementById('themeToggle').addEventListener('click', toggleTheme);
@@ -79,6 +91,17 @@ async function handleLogin(e) {
             body: JSON.stringify({ email, password })
         });
         
+        // Log response status
+        console.log('Login response status:', response.status);
+        
+        // Check if response is ok
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('Login error response:', errorText);
+            showToast('Login failed: ' + (response.status === 500 ? 'Server error' : 'Invalid credentials'), 'error');
+            return;
+        }
+        
         const data = await response.json();
         
         if (data.success) {
@@ -88,6 +111,7 @@ async function handleLogin(e) {
             showToast(data.message, 'error');
         }
     } catch (error) {
+        console.error('Login fetch error:', error);
         showToast('Login failed: ' + error.message, 'error');
     }
 }
@@ -99,6 +123,7 @@ async function handleSignup(e) {
     const email = document.getElementById('signupEmail').value;
     const password = document.getElementById('signupPassword').value;
     const confirmPassword = document.getElementById('signupPasswordConfirm').value;
+    const userType = document.querySelector('input[name="userType"]:checked').value;
     
     if (password !== confirmPassword) {
         showToast('Passwords do not match', 'error');
@@ -109,8 +134,19 @@ async function handleSignup(e) {
         const response = await fetch(`${API_BASE_URL}/auth/register`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username, email, password })
+            body: JSON.stringify({ username, email, password, userType })
         });
+        
+        // Log response status
+        console.log('Signup response status:', response.status);
+        
+        // Check if response is ok
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('Signup error response:', errorText);
+            showToast('Signup failed: ' + (response.status === 500 ? 'Server error' : 'Registration error'), 'error');
+            return;
+        }
         
         const data = await response.json();
         
@@ -120,8 +156,10 @@ async function handleSignup(e) {
             toggleAuthForm();
         } else {
             showToast(data.message, 'error');
+            console.log('Signup failed:', data);
         }
     } catch (error) {
+        console.error('Signup fetch error:', error);
         showToast('Signup failed: ' + error.message, 'error');
     }
 }
@@ -141,6 +179,8 @@ function showApp() {
     document.getElementById('authContainer').classList.add('hidden');
     document.getElementById('appContainer').classList.remove('hidden');
     updateUserInfo();
+    updateArtistNavigation();
+    updateDashboardHeader();
 }
 
 function showPage(pageName) {
@@ -153,6 +193,11 @@ function showPage(pageName) {
     document.querySelectorAll('.nav-item').forEach(item => {
         item.classList.remove('active');
     });
+    
+    if (pageName === 'artist' && currentUser?.user_type !== 'artist') {
+        showToast('Artist dashboard is only available for artist accounts', 'error');
+        pageName = 'dashboard';
+    }
     
     // Show selected page
     const pageId = pageName + 'Page';
@@ -184,22 +229,56 @@ function showPage(pageName) {
         case 'trending':
             loadTrending();
             break;
+        case 'artist':
+            loadArtistDashboard();
+            break;
     }
 }
 
 // ==================== DASHBOARD ====================
 async function loadDashboard() {
     try {
-        const [trending, recent] = await Promise.all([
-            fetch(`${API_BASE_URL}/music/trending`).then(r => r.json()),
-            fetch(`${API_BASE_URL}/music/songs`).then(r => r.json())
-        ]);
+        let trendingData, recentData;
         
-        renderSongGrid(trending.slice(0, 6), 'trendingContainer');
-        renderSongGrid(recent.slice(0, 6), 'recentContainer');
+        if (currentUser?.user_type === 'artist') {
+            // For artists: Show their songs as "My Music" and recent global songs
+            const mySongsResponse = await fetch(`${API_BASE_URL}/music/user/${currentUser.id}`);
+            const mySongs = await mySongsResponse.json();
+            if (mySongs.error) throw new Error(mySongs.error);
+            
+            const recentResponse = await fetch(`${API_BASE_URL}/music/songs`);
+            recentData = await recentResponse.json();
+            if (recentData.error) throw new Error(recentData.error);
+            
+            trendingData = mySongs;
+            
+            // Update section headers
+            const firstHeader = document.querySelector('#dashboardPage .section:nth-child(1) h3');
+            if (firstHeader) firstHeader.textContent = 'My Music';
+            const secondHeader = document.querySelector('#dashboardPage .section:nth-child(2) h3');
+            if (secondHeader) secondHeader.textContent = 'Recently Added';
+        } else {
+            // For listeners: Show trending and recent
+            const trendingResponse = await fetch(`${API_BASE_URL}/music/trending`);
+            trendingData = await trendingResponse.json();
+            if (trendingData.error) throw new Error(trendingData.error);
+            
+            const recentResponse = await fetch(`${API_BASE_URL}/music/songs`);
+            recentData = await recentResponse.json();
+            if (recentData.error) throw new Error(recentData.error);
+            
+            // Update section headers
+            const firstHeader = document.querySelector('#dashboardPage .section:nth-child(1) h3');
+            if (firstHeader) firstHeader.textContent = 'Trending Now';
+            const secondHeader = document.querySelector('#dashboardPage .section:nth-child(2) h3');
+            if (secondHeader) secondHeader.textContent = 'Recently Added';
+        }
+        
+        renderSongGrid(trendingData.slice(0, 6), 'trendingContainer');
+        renderSongGrid(recentData.slice(0, 6), 'recentContainer');
     } catch (error) {
         console.error('Error loading dashboard:', error);
-        showToast('Failed to load dashboard', 'error');
+        showToast('Failed to load dashboard: ' + error.message, 'error');
     }
 }
 
@@ -364,7 +443,7 @@ function renderSongGrid(songs, containerId) {
     container.innerHTML = songs.map(song => `
         <div class="song-card" onclick="playSong(${song.id})">
             <div class="song-image">
-                <img src="/images/default-album.png" alt="${song.title}">
+                <img src="${song.cover_image_url || '/images/default-album.svg'}" alt="${song.title}" onerror="this.src='/images/default-album.svg'">
             </div>
             <div class="song-title" title="${song.title}">${song.title}</div>
             <div class="song-artist" title="${song.artist_name}">${song.artist_name || 'Unknown Artist'}</div>
@@ -388,7 +467,7 @@ function renderSongList(songs, containerId) {
         <div class="song-item" onclick="playSong(${song.id})">
             <div class="song-item-info">
                 <div class="song-item-image">
-                    <img src="/images/default-album.png" alt="${song.title}">
+                    <img src="${song.cover_image_url || '/images/default-album.svg'}" alt="${song.title}" onerror="this.src='/images/default-album.svg'">
                 </div>
                 <div class="song-item-details">
                     <div class="song-item-title">${song.title}</div>
@@ -418,7 +497,7 @@ function renderArtistGrid(artists, containerId) {
     container.innerHTML = artists.map(artist => `
         <div class="artist-card">
             <div class="artist-image">
-                <img src="/images/default-artist.png" alt="${artist.name}">
+                <img src="/images/default-artist.svg" alt="${artist.name}">
             </div>
             <div class="artist-name" title="${artist.name}">${artist.name}</div>
             <div class="song-artist">${artist.genre || 'Unknown Genre'}</div>
@@ -436,7 +515,7 @@ function renderAlbumGrid(albums, containerId) {
     container.innerHTML = albums.map(album => `
         <div class="album-card">
             <div class="album-image">
-                <img src="/images/default-album.png" alt="${album.title}">
+                <img src="/images/default-album.svg" alt="${album.title}">
             </div>
             <div class="album-title" title="${album.title}">${album.title}</div>
             <div class="album-artist" title="${album.artist_name}">${album.artist_name || 'Unknown Artist'}</div>
@@ -454,7 +533,7 @@ function renderPlaylistGrid(playlists, containerId) {
     container.innerHTML = playlists.map(playlist => `
         <div class="playlist-card">
             <div class="playlist-image">
-                <img src="/images/default-playlist.png" alt="${playlist.title}">
+                <img src="/images/default-playlist.svg" alt="${playlist.title}">
             </div>
             <div class="playlist-title" title="${playlist.title}">${playlist.title}</div>
             <div class="song-artist">${playlist.description || 'No description'}</div>
@@ -490,11 +569,23 @@ function togglePlay() {
 }
 
 function play() {
+    if (!currentSong) return;
+    
+    const audio = document.getElementById('audioPlayer');
+    audio.src = currentSong.file_path || currentSong.filePath;
+    audio.play().catch(err => {
+        console.error('Error playing audio:', err);
+        showToast('Could not play song', 'error');
+    });
+    
     isPlaying = true;
     document.getElementById('playerPlayBtn').innerHTML = '<i class="fas fa-pause"></i>';
 }
 
 function pause() {
+    const audio = document.getElementById('audioPlayer');
+    audio.pause();
+    
     isPlaying = false;
     document.getElementById('playerPlayBtn').innerHTML = '<i class="fas fa-play"></i>';
 }
@@ -504,6 +595,7 @@ function playNext() {
         currentPlaylistIndex = (currentPlaylistIndex + 1) % currentPlaylist.length;
         currentSong = currentPlaylist[currentPlaylistIndex];
         updatePlayerUI();
+        play();
     }
 }
 
@@ -512,18 +604,48 @@ function playPrevious() {
         currentPlaylistIndex = (currentPlaylistIndex - 1 + currentPlaylist.length) % currentPlaylist.length;
         currentSong = currentPlaylist[currentPlaylistIndex];
         updatePlayerUI();
+        play();
     }
 }
 
 function seek(e) {
+    const audio = document.getElementById('audioPlayer');
     const progressInput = document.getElementById('playerProgressInput');
     const fillPercentage = (progressInput.value / 100) * 100;
     document.getElementById('playerProgressFill').style.width = fillPercentage + '%';
+    
+    if (audio.duration) {
+        audio.currentTime = (progressInput.value / 100) * audio.duration;
+    }
 }
 
 function setVolume(e) {
+    const audio = document.getElementById('audioPlayer');
     const volume = e.target.value;
-    // In a real app, would control audio element
+    audio.volume = volume / 100;
+}
+
+function updatePlayerProgress() {
+    const audio = document.getElementById('audioPlayer');
+    const progressInput = document.getElementById('playerProgressInput');
+    const progressFill = document.getElementById('playerProgressFill');
+    const currentTimeEl = document.getElementById('playerCurrentTime');
+    
+    if (audio.duration) {
+        const percentage = (audio.currentTime / audio.duration) * 100;
+        progressInput.value = percentage;
+        progressFill.style.width = percentage + '%';
+        currentTimeEl.textContent = formatDuration(Math.floor(audio.currentTime));
+    }
+}
+
+function updatePlayerDuration() {
+    const audio = document.getElementById('audioPlayer');
+    const durationEl = document.getElementById('playerDuration');
+    
+    if (audio.duration) {
+        durationEl.textContent = formatDuration(Math.floor(audio.duration));
+    }
 }
 
 function updatePlayerUI() {
@@ -532,6 +654,14 @@ function updatePlayerUI() {
     document.getElementById('playerTrackTitle').textContent = currentSong.title;
     document.getElementById('playerTrackArtist').textContent = currentSong.artist_name || 'Unknown Artist';
     document.getElementById('playerDuration').textContent = formatDuration(currentSong.duration);
+    
+    // Update album art
+    const albumArt = document.getElementById('playerAlbumArt');
+    const imageUrl = currentSong.cover_image_url || currentSong.albumImage || '/images/default-album.svg';
+    albumArt.src = imageUrl;
+    albumArt.onerror = function() {
+        this.src = '/images/default-album.svg';
+    };
     
     // Reset progress
     document.getElementById('playerProgressInput').value = 0;
@@ -544,8 +674,32 @@ function updateUserInfo() {
     if (currentUser) {
         document.getElementById('userInfo').innerHTML = `
             <div style="font-weight: 600; margin-bottom: var(--spacing-sm);">${currentUser.username}</div>
-            <div style="font-size: 0.75rem; color: var(--text-secondary);">${currentUser.subscription_type}</div>
+            <div style="font-size: 0.75rem; color: var(--text-secondary);">${currentUser.user_type === 'artist' ? 'Artist' : 'Listener'}</div>
         `;
+    }
+}
+
+function updateArtistNavigation() {
+    const artistNavItem = document.querySelector('[data-page="artist"]');
+    if (!currentUser || currentUser.user_type !== 'artist') {
+        artistNavItem?.classList.add('hidden');
+    } else {
+        artistNavItem?.classList.remove('hidden');
+    }
+}
+
+function updateDashboardHeader() {
+    const header = document.querySelector('#dashboardPage .page-header h2');
+    const subtitle = document.querySelector('#dashboardPage .page-header p');
+    
+    if (currentUser) {
+        if (header) header.textContent = `Welcome back, ${currentUser.username}!`;
+        if (subtitle) subtitle.textContent = currentUser.user_type === 'artist' 
+            ? 'Manage your music and connect with fans' 
+            : 'Discover new music and enjoy your favorites';
+    } else {
+        if (header) header.textContent = 'Welcome to MusicFlow';
+        if (subtitle) subtitle.textContent = 'Your favorite music is just a click away';
     }
 }
 
@@ -579,16 +733,140 @@ function closeSongModal() {
     document.getElementById('songModal').classList.add('hidden');
 }
 
+// ==================== ARTIST FUNCTIONS ====================
+async function loadArtistDashboard() {
+    try {
+        const songs = await fetch(`${API_BASE_URL}/music/user/${currentUser.id}`).then(r => r.json());
+        renderArtistSongs(songs, 'artistSongsContainer');
+    } catch (error) {
+        console.error('Error loading artist dashboard:', error);
+        showToast('Failed to load your songs', 'error');
+    }
+}
+
+function openUploadModal() {
+    if (currentUser?.user_type !== 'artist') {
+        showToast('Only artists can upload songs', 'error');
+        return;
+    }
+    document.getElementById('uploadSongModal').classList.remove('hidden');
+}
+
+function closeUploadModal() {
+    document.getElementById('uploadSongModal').classList.add('hidden');
+    document.getElementById('uploadSongForm').reset();
+}
+
+async function uploadSong() {
+    const title = document.getElementById('uploadSongTitle').value;
+    const artistName = document.getElementById('uploadArtistName').value;
+    const albumTitle = document.getElementById('uploadAlbumTitle').value;
+    const genre = document.getElementById('uploadGenre').value;
+    const songFile = document.getElementById('uploadSongFile').files[0];
+    const imageFile = document.getElementById('uploadAlbumImage').files[0];
+    
+    if (!title || !artistName || !albumTitle || !genre || !songFile || !imageFile) {
+        showToast('Please fill all fields', 'error');
+        return;
+    }
+    
+    try {
+        const formData = new FormData();
+        formData.append('title', title);
+        formData.append('artistName', artistName);
+        formData.append('albumTitle', albumTitle);
+        formData.append('genre', genre);
+        formData.append('userId', currentUser.id);
+        formData.append('songFile', songFile);
+        formData.append('imageFile', imageFile);
+        
+        const response = await fetch(`${API_BASE_URL}/music/upload`, {
+            method: 'POST',
+            body: formData
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            showToast('Song uploaded successfully!', 'success');
+            closeUploadModal();
+            loadArtistDashboard();
+        } else {
+            showToast(result.message || 'Upload failed', 'error');
+        }
+    } catch (error) {
+        console.error('Error uploading song:', error);
+        showToast('Upload failed: ' + error.message, 'error');
+    }
+}
+
+function renderArtistSongs(songs, containerId) {
+    const container = document.getElementById(containerId);
+    if (!songs || songs.length === 0) {
+        container.innerHTML = '<p style="text-align: center; color: var(--text-secondary);">No songs uploaded yet. Start by uploading your first song!</p>';
+        return;
+    }
+    
+    container.innerHTML = songs.map(song => `
+        <div class="song-item">
+            <div class="song-item-info">
+                <div class="song-item-image">
+                    <img src="${song.albumImage || '/images/default-album.svg'}" alt="${song.albumTitle}">
+                </div>
+                <div class="song-item-details">
+                    <div class="song-item-title">${song.title}</div>
+                    <div class="song-item-artist">${song.artistName}</div>
+                    <div class="song-item-artist" style="font-size: 0.8rem; color: var(--text-secondary);">${song.albumTitle}</div>
+                </div>
+            </div>
+            <div class="song-item-actions">
+                <button class="icon-btn" onclick="deleteSong(${song.id}, event)" title="Delete">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        </div>
+    `).join('');
+}
+
+async function deleteSong(songId, e) {
+    e.stopPropagation();
+    
+    if (!confirm('Are you sure you want to delete this song?')) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`${API_BASE_URL}/music/songs/${songId}`, {
+            method: 'DELETE'
+        });
+        
+        const result = await response.json();
+        if (result.success) {
+            showToast('Song deleted successfully', 'success');
+            loadArtistDashboard();
+        } else {
+            showToast(result.message || 'Delete failed', 'error');
+        }
+    } catch (error) {
+        console.error('Error deleting song:', error);
+        showToast('Delete failed: ' + error.message, 'error');
+    }
+}
+
 // Close modals when clicking outside
 document.addEventListener('click', function(e) {
     const playlistModal = document.getElementById('playlistModal');
     const songModal = document.getElementById('songModal');
+    const uploadModal = document.getElementById('uploadSongModal');
     
     if (e.target === playlistModal) {
         closePlaylistModal();
     }
     if (e.target === songModal) {
         closeSongModal();
+    }
+    if (e.target === uploadModal) {
+        closeUploadModal();
     }
 });
 

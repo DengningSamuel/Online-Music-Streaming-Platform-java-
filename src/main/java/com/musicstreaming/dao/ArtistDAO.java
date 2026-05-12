@@ -8,16 +8,17 @@ public class ArtistDAO {
     /**
      * Create a new artist
      */
-    public static int createArtist(String name, String genre, String bio, String imageUrl) throws SQLException {
-        String sql = "INSERT INTO artists (name, genre, bio, image_url) VALUES (?, ?, ?, ?) RETURNING id";
+    public static int createArtist(String name, String genre, String bio, String imageUrl, int userId) throws SQLException {
+        String sql = "INSERT INTO artists (user_id, name, genre, bio, image_url) VALUES (?, ?, ?, ?, ?) RETURNING id";
         
         try (Connection conn = DBCONNECT.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             
-            stmt.setString(1, name);
-            stmt.setString(2, genre);
-            stmt.setString(3, bio);
-            stmt.setString(4, imageUrl);
+            stmt.setInt(1, userId);
+            stmt.setString(2, name);
+            stmt.setString(3, genre);
+            stmt.setString(4, bio);
+            stmt.setString(5, imageUrl);
             
             ResultSet rs = stmt.executeQuery();
             if (rs.next()) {
@@ -42,6 +43,28 @@ public class ArtistDAO {
             
             if (rs.next()) {
                 artist.put("id", rs.getInt("id"));
+                artist.put("user_id", rs.getInt("user_id"));
+                artist.put("name", rs.getString("name"));
+                artist.put("genre", rs.getString("genre"));
+                artist.put("bio", rs.getString("bio"));
+                artist.put("image_url", rs.getString("image_url"));
+            }
+        }
+        return artist;
+    }
+
+    public static Map<String, Object> getArtistByUserId(int userId) throws SQLException {
+        String sql = "SELECT * FROM artists WHERE user_id = ?";
+        Map<String, Object> artist = new HashMap<>();
+        
+        try (Connection conn = DBCONNECT.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, userId);
+            ResultSet rs = stmt.executeQuery();
+            
+            if (rs.next()) {
+                artist.put("id", rs.getInt("id"));
+                artist.put("user_id", rs.getInt("user_id"));
                 artist.put("name", rs.getString("name"));
                 artist.put("genre", rs.getString("genre"));
                 artist.put("bio", rs.getString("bio"));

@@ -37,7 +37,7 @@ public class SongDAO {
      * Get song by ID
      */
     public static Map<String, Object> getSongById(int songId) throws SQLException {
-        String sql = "SELECT s.*, a.name as artist_name, al.title as album_title FROM songs s " +
+        String sql = "SELECT s.*, a.name as artist_name, al.title as album_title, al.cover_image_url FROM songs s " +
                      "LEFT JOIN artists a ON s.artist_id = a.id " +
                      "LEFT JOIN albums al ON s.album_id = al.id " +
                      "WHERE s.id = ?";
@@ -56,6 +56,7 @@ public class SongDAO {
                 song.put("artist_name", rs.getString("artist_name"));
                 song.put("album_id", rs.getInt("album_id"));
                 song.put("album_title", rs.getString("album_title"));
+                song.put("cover_image_url", rs.getString("cover_image_url"));
                 song.put("duration", rs.getInt("duration"));
                 song.put("genre", rs.getString("genre"));
                 song.put("file_path", rs.getString("file_path"));
@@ -68,8 +69,9 @@ public class SongDAO {
      * Get all songs
      */
     public static List<Map<String, Object>> getAllSongs() throws SQLException {
-        String sql = "SELECT s.*, a.name as artist_name FROM songs s " +
+        String sql = "SELECT s.*, a.name as artist_name, al.cover_image_url FROM songs s " +
                      "LEFT JOIN artists a ON s.artist_id = a.id " +
+                     "LEFT JOIN albums al ON s.album_id = al.id " +
                      "ORDER BY s.created_at DESC";
         List<Map<String, Object>> songs = new ArrayList<>();
         
@@ -84,6 +86,7 @@ public class SongDAO {
                 song.put("title", rs.getString("title"));
                 song.put("artist_id", rs.getInt("artist_id"));
                 song.put("artist_name", rs.getString("artist_name"));
+                song.put("cover_image_url", rs.getString("cover_image_url"));
                 song.put("duration", rs.getInt("duration"));
                 song.put("genre", rs.getString("genre"));
                 songs.add(song);
@@ -164,5 +167,40 @@ public class SongDAO {
             int rowsDeleted = stmt.executeUpdate();
             return rowsDeleted > 0;
         }
+    }
+    
+    /**
+     * Get songs by user (uploaded by artist)
+     */
+    public static List<Map<String, Object>> getSongsByUser(int userId) throws SQLException {
+        String sql = "SELECT s.*, a.name as artist_name, al.title as album_title, al.cover_image_url as albumImage " +
+                     "FROM songs s " +
+                     "LEFT JOIN artists a ON s.artist_id = a.id " +
+                     "LEFT JOIN albums al ON s.album_id = al.id " +
+                     "WHERE a.user_id = ? " +
+                     "ORDER BY s.created_at DESC";
+        List<Map<String, Object>> songs = new ArrayList<>();
+        
+        try (Connection conn = DBCONNECT.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, userId);
+            ResultSet rs = stmt.executeQuery();
+            
+            while (rs.next()) {
+                Map<String, Object> song = new HashMap<>();
+                song.put("id", rs.getInt("id"));
+                song.put("title", rs.getString("title"));
+                song.put("artist_id", rs.getInt("artist_id"));
+                song.put("artistName", rs.getString("artist_name"));
+                song.put("album_id", rs.getInt("album_id"));
+                song.put("albumTitle", rs.getString("album_title"));
+                song.put("albumImage", rs.getString("albumImage"));
+                song.put("duration", rs.getInt("duration"));
+                song.put("genre", rs.getString("genre"));
+                song.put("file_path", rs.getString("file_path"));
+                songs.add(song);
+            }
+        }
+        return songs;
     }
 }

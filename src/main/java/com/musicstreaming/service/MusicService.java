@@ -101,9 +101,9 @@ public class MusicService {
     /**
      * Add a new artist
      */
-    public static int addArtist(String name, String genre, String bio, String imageUrl) 
+    public static int addArtist(String name, String genre, String bio, String imageUrl, int userId) 
             throws SQLException {
-        return ArtistDAO.createArtist(name, genre, bio, imageUrl);
+        return ArtistDAO.createArtist(name, genre, bio, imageUrl, userId);
     }
     
     /**
@@ -119,5 +119,44 @@ public class MusicService {
      */
     public static List<Map<String, Object>> getTrendingSongs() throws SQLException {
         return RecommendationDAO.getPopularSongs();
+    }
+    
+    /**
+     * Add or get artist by name
+     */
+    public static int addOrGetArtist(String name, String genre, int userId) throws SQLException {
+        // Prefer an existing artist record already tied to this user
+        Map<String, Object> artist = ArtistDAO.getArtistByUserId(userId);
+        if (!artist.isEmpty()) {
+            return ((Number) artist.get("id")).intValue();
+        }
+        return ArtistDAO.createArtist(name, genre, "", "", userId);
+    }
+    
+    /**
+     * Add or get album by title
+     */
+    public static int addOrGetAlbum(String title, int artistId, String coverImageUrl) throws SQLException {
+        List<Map<String, Object>> albums = AlbumDAO.getAlbumsByArtist(artistId);
+        for (Map<String, Object> album : albums) {
+            if (album.get("title").equals(title)) {
+                return ((Number) album.get("id")).intValue();
+            }
+        }
+        return AlbumDAO.createAlbum(title, artistId, "", coverImageUrl);
+    }
+    
+    /**
+     * Get songs by user (uploaded by user)
+     */
+    public static List<Map<String, Object>> getSongsByUser(int userId) throws SQLException {
+        return SongDAO.getSongsByUser(userId);
+    }
+    
+    /**
+     * Delete a song
+     */
+    public static boolean deleteSong(int songId) throws SQLException {
+        return SongDAO.deleteSong(songId);
     }
 }
